@@ -8,6 +8,8 @@ use List::Util 'sum';
 
 our $VERSION = 0.01;
 
+sub prereq_plugins { 'RequestInspector' }
+
 sub count_types {
     # walk the arena, noting the type of each value
     my %types;
