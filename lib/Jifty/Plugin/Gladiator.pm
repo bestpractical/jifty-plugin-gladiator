@@ -4,6 +4,7 @@ use warnings;
 use base 'Jifty::Plugin';
 use Devel::Gladiator;
 use Template::Declare::Tags;
+use List::Util 'sum';
 
 our $VERSION = 0.01;
 
@@ -27,48 +28,35 @@ sub inspect_after_request {
     my $starting_arena = shift;
     my $current_arena = $self->count_types;
 
-    my $new_values = 0;
-    my $new_types  = 0;
-
-    my %types;
+    my %growth;
 
     # find the difference
     for my $type (keys %$current_arena) {
         my $diff = $current_arena->{$type} - ($starting_arena->{$type} || 0);
-
-        if ($diff != 0) {
-            $new_values += $diff;
-            ++$new_types;
-        }
-
-        $types{$type} = {
-            all => $current_arena->{$type},
-            new => $diff,
-        }
+        next if $diff == 0;
+        $growth{$type} = $diff;
     }
 
-    return {
-        new_values => $new_values,
-        new_types  => $new_types,
-        types      => \%types,
-    };
+    return \%growth;
 }
 
 sub inspect_render_summary {
     my $self   = shift;
     my $growth = shift;
 
-    return "$growth->{new_values} new values in $growth->{new_types} types";
+    my $new_values = sum values %$growth;
+    my $types      =     keys   %$growth;
+
+    return "$new_values new values in $types types.";
 }
 
 sub inspect_render_analysis {
     my $self   = shift;
     my $growth = shift;
-    my $types  = $growth->{types};
 
     ol {
-        for my $type (sort { $types->{$b} <=> $types->{$a} } keys %$types) {
-            li { "$type ($types->{$type})" }
+        for my $type (sort { $growth->{$b} <=> $growth->{$a} } keys %$growth) {
+            li { "$type ($growth->{$type})" }
         }
     }
 }
