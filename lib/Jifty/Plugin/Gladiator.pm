@@ -34,7 +34,7 @@ sub inspect_after_request {
 
     # find the difference
     for my $type (keys %$current_arena) {
-        my $diff = $current_arena->{$type} - $starting_arena->{$type};
+        my $diff = $current_arena->{$type} - ($starting_arena->{$type} || 0);
 
         if ($diff != 0) {
             $new_values += $diff;
